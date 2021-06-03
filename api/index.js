@@ -3,30 +3,67 @@ var r = express.Router();
 
 // load pre-trained model
 const model = require('./sdk/model.js');
+const cls_model = require('./sdk/cls_model.js');
 
 // Bot Setting
 const TelegramBot = require('node-telegram-bot-api');
-const token = '1733547356:AAEOX7oG_z09vS34M-DUHOm5YCPsXYDXohg'
+const token = '1574933160:AAFnbOJh55tHQOqjuiDibIH29VEpzjW4Byc'
 const bot = new TelegramBot(token, {polling: true});
 
-
-// bots
+state = 0;
+// Main Menu Bot
 bot.onText(/\/start/, (msg) => { 
-    console.log(msg)
     bot.sendMessage(
         msg.chat.id,
         `hello ${msg.chat.first_name}, welcome...\n
-        click /menu to main menu`
+        click  /predict to know about i and v`
     );   
+state = 0;
 });
 
-bot.onText(/\/menu/, (msg) => { 
-    console.log(msg)
+//input requires i and r 
+bot.onText(/\/predict/, (msg) => { 
     bot.sendMessage(
         msg.chat.id,
-        `this is your main menu`
+        `input nilai i|v example 4|3`
     );   
+    state = 1;
 });
+
+bot.on('message', (msg) => {
+    if(state == 1){
+        s = msg.text.split("|");
+        i = s[0]
+        v = s[1]
+        
+        model.predict(
+            [
+               i, // string to float
+               r
+            ]
+        ).then((jres1)=>{
+            v = parseFloat(jres1[0])
+            p = parseFloat(jres1[1])
+            
+            cls_model.classify([i, r, v, p]).then((jres2) =>{
+                bot.sendMessage(
+                    msg.chat.id,
+                    `nilai v yang diprediksi adalah ${v} volt`
+                );   
+                bot.sendMessage(
+                    msg.chat.id,
+                    `nilai p yang diprediksi adalah ${p} watt`
+                );
+                bot.sendMessage(
+                    msg.chat.id,
+                    `klasifikasi tegangan ${jres2}`
+                );   
+            }) 
+        })
+    }else{
+        state = 0
+    }
+})
 
 // routers
 r.get('/prediction/:i/:r', function(req, res, next) {    
@@ -40,4 +77,25 @@ r.get('/prediction/:i/:r', function(req, res, next) {
     })
 });
 
+// routers
+r.get('/classify/:i/:r', function(req, res, next) {
+      model.predict(
+        [
+                parseFloat(req.params.i), //string nofloat
+                parseFloat(req.params.r),
+        ]
+       ).then((jres)=>{
+           cls_model.classify(
+               [
+                parseFloat(req.params.i), //string nofloat
+                parseFloat(req.params.r),
+                parseFloat(jres[0]),
+                parseFloat(jres[1])
+               ]
+               ).then((jres_)=>{
+                res.json(jres_)
+           })
+      })
+});
+        
 module.exports = r;
