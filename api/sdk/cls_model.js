@@ -9,7 +9,7 @@ function normalized(data){ // i & r
 }
 
 const ArgFact = (compareFn) => (array) => array.map((el, idx) => [el, idx]).reduce(compareFn)[1]
-const ArgMax = ArgFact((min, el) => (el[0] > min[0] ? el : min))
+const argMax = ArgFact((min, el) => (el[0] > min[0] ? el : min))
 
 function ArgMax(res){
   label = "NORMAL"
