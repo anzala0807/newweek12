@@ -11,7 +11,7 @@ function normalized(data){ // i & r
 const argFact = (compareFn) => (array) => array.map((el, idx) => [el, idx]).reduce(compareFn)[1]
 const argMax = argFact((min, el) => (el[0] > min[0] ? el : min))
 
-function argMax(res){
+function ArgMax(res){
   label = "NORMAL"
     if(argMax(res) == 1){
         label = "OVER VOLTAGE"
@@ -38,7 +38,7 @@ async function classify(data){
                 tf_data
         );
         result = predict.dataSync();
-        return argMax( result );
+        return ArgMax( result );
         
     }catch(e){
       console.log(e);
